@@ -19,8 +19,7 @@ import {
 } from '@orbit/data';
 import { clone, deepSet, Dict } from '@orbit/utils';
 import JSONAPIRequestProcessor from '../jsonapi-request-processor';
-import { ResourceDocument } from '../resource-document';
-import { RecordDocument } from '../record-document';
+import { ResourceDocument, RecordDocument } from '../jsonapi-documents';
 import { JSONAPIRequestOptions } from './jsonapi-request-options';
 
 export interface BaseTransformRecordRequest {

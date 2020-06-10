@@ -19,7 +19,7 @@ import {
 } from '@orbit/data';
 import { jsonapiResponse } from './support/jsonapi';
 import JSONAPISource from '../src/jsonapi-source';
-import { Resource, ResourceDocument } from '../src/resource-document';
+import { Resource, ResourceDocument } from '../src/jsonapi-document';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';
 
@@ -192,7 +192,7 @@ module('JSONAPISource', function () {
 
       let planet: Record = source.requestProcessor.serializer.deserializeResource(
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         }
       );

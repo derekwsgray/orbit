@@ -1,5 +1,5 @@
 export { default, JSONAPISourceSettings } from './jsonapi-source';
-export * from './jsonapi-serializer';
+export * from './serializers/jsonapi-document-serializer';
 export {
   default as JSONAPIRequestProcessor,
   JSONAPIRequestProcessorSettings,
@@ -9,8 +9,10 @@ export {
   default as JSONAPIURLBuilder,
   JSONAPIURLBuilderSettings
 } from './jsonapi-url-builder';
-export * from './record-document';
-export * from './resource-document';
+export * from './jsonapi-documents';
+export * from './atomic-operations-documents';
+export * from './atomic-operations';
+export * from './jsonapi-resource';
 export * from './lib/exceptions';
 export * from './lib/jsonapi-request-options';
 export * from './lib/query-params';

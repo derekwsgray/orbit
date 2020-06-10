@@ -15,8 +15,7 @@ import { InvalidServerResponse } from './lib/exceptions';
 import { TransformRecordRequest } from './lib/transform-requests';
 import { QueryRequest } from './lib/query-requests';
 import { deepMerge, toArray } from '@orbit/utils';
-import { RecordDocument } from './record-document';
-import { ResourceDocument } from './resource-document';
+import { RecordDocument, ResourceDocument } from './jsonapi-documents';
 import {
   JSONAPIRequestOptions,
   buildFetchSettings
