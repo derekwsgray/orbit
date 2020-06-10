@@ -1,4 +1,8 @@
-export interface Serializer<From, To> {
-  serialize(arg: From, options?: any): To;
-  deserialize(arg: To, options?: any): From;
+export interface SerializerOptions {
+  disallowNull?: boolean;
+}
+
+export interface Serializer<From, To, Options> {
+  serialize(arg: From, options?: Options): To;
+  deserialize(arg: To, options?: Options): From;
 }
