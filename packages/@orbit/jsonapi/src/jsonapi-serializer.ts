@@ -40,7 +40,7 @@ import {
 } from './resource-document';
 import { RecordDocument } from './record-document';
 
-export interface DeserializeOptions {
+export interface JSONAPISerializerOptions {
   primaryRecord?: Record;
   primaryRecords?: Record[];
 }
@@ -48,14 +48,15 @@ export interface DeserializeOptions {
 export interface JSONAPISerializerSettings {
   schema: Schema;
   keyMap?: KeyMap;
-  serializers?: Dict<Serializer<any, any>>;
+  serializers?: Dict<Serializer<any, any, any>>;
 }
 
 export class JSONAPISerializer
-  implements Serializer<RecordDocument, ResourceDocument> {
+  implements
+    Serializer<RecordDocument, ResourceDocument, JSONAPISerializerOptions> {
   protected _schema: Schema;
   protected _keyMap: KeyMap;
-  protected _serializers: Dict<Serializer<any, any>>;
+  protected _serializers: Dict<Serializer<any, any, any>>;
 
   constructor(settings: JSONAPISerializerSettings) {
     this._schema = settings.schema;
@@ -71,7 +72,7 @@ export class JSONAPISerializer
     return this._keyMap;
   }
 
-  serializerFor(type: string): Serializer<any, any> {
+  serializerFor(type: string): Serializer<any, any, any> {
     return this._serializers[type];
   }
 
@@ -417,7 +418,7 @@ export class JSONAPISerializer
 
   deserialize(
     document: ResourceDocument,
-    options?: DeserializeOptions
+    options?: JSONAPISerializerOptions
   ): RecordDocument {
     let result: RecordDocument;
     let data;
@@ -727,7 +728,9 @@ export class JSONAPISerializer
     }
   }
 
-  protected _initSerializers(serializers: Dict<Serializer<any, any>> = {}) {
+  protected _initSerializers(
+    serializers: Dict<Serializer<any, any, any>> = {}
+  ) {
     this._serializers = serializers;
     serializers.boolean = serializers.boolean || new BooleanSerializer();
     serializers.string = serializers.string || new StringSerializer();
