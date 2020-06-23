@@ -6,3 +6,4 @@ export * from './date-time-serializer';
 export * from './noop-serializer';
 export * from './number-serializer';
 export * from './string-serializer';
+export * from './serializer-resolver';
