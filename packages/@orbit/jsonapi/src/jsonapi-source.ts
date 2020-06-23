@@ -21,6 +21,7 @@ import Orbit, {
   TransformNotAllowed,
   QueryNotAllowed
 } from '@orbit/data';
+import { Dict } from '@orbit/utils';
 import JSONAPIRequestProcessor, {
   JSONAPIRequestProcessorSettings,
   FetchSettings
@@ -44,6 +45,7 @@ import {
   TransformRecordRequest,
   getTransformRequests
 } from './lib/transform-requests';
+import { Serializer } from '@orbit/serializers';
 
 const { assert } = Orbit;
 
@@ -64,6 +66,9 @@ export interface JSONAPISourceSettings extends SourceSettings {
   URLBuilderClass?: new (
     settings: JSONAPIURLBuilderSettings
   ) => JSONAPIURLBuilder;
+  serializers?: Dict<Serializer<unknown, unknown, unknown, unknown>>;
+  serializationOptions?: Dict<Dict<unknown>>;
+  deserializationOptions?: Dict<Dict<unknown>>;
   schema?: Schema;
   keyMap?: KeyMap;
 }

@@ -27,6 +27,7 @@ import {
   JSONAPISerializer,
   JSONAPISerializerSettings
 } from './jsonapi-serializer';
+import { Serializer } from '@orbit/serializers';
 const { assert } = Orbit;
 
 export interface FetchSettings {
@@ -46,6 +47,9 @@ export interface FetchSettings {
 
 export interface JSONAPIRequestProcessorSettings {
   sourceName: string;
+  serializers?: Dict<Serializer<unknown, unknown, unknown, unknown>>;
+  serializationOptions?: Dict<Dict<unknown>>;
+  deserializationOptions?: Dict<Dict<unknown>>;
   SerializerClass?: new (
     settings: JSONAPISerializerSettings
   ) => JSONAPISerializer;
@@ -80,7 +84,10 @@ export default class JSONAPIRequestProcessor {
     let SerializerClass = settings.SerializerClass || JSONAPISerializer;
     this.serializer = new SerializerClass({
       schema: settings.schema,
-      keyMap: settings.keyMap
+      keyMap: settings.keyMap,
+      serializers: settings.serializers,
+      serializationOptions: settings.serializationOptions,
+      deserializationOptions: settings.deserializationOptions
     });
     let URLBuilderClass = settings.URLBuilderClass || JSONAPIURLBuilder;
     this.urlBuilder = new URLBuilderClass({

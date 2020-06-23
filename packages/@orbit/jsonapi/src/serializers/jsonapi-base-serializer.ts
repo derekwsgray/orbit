@@ -10,31 +10,21 @@ import { ResourceOperation } from '../atomic-operations';
 import {
   Serializer,
   BaseSerializer,
-  NoopSerializer,
-  StringSerializationOptions
+  UnknownSerializer,
+  StringSerializationOptions,
+  SerializerResolver
 } from '@orbit/serializers';
 import {
   JSONAPIResourceIdentitySerializer,
   JSONAPIResourceIdentitySerializationOptions
 } from './jsonapi-resource-identity-serializer';
 import { JSONAPIResourceSerializationOptions } from './jsonapi-resource-serializer';
-import { Dict } from '@orbit/utils';
 
 const RESOURCE = 'jsonapi-resource';
 const RESOURCE_IDENTITY = 'jsonapi-resource-identity';
 const RESOURCE_FIELD = 'jsonapi-resource-field';
 const RESOURCE_OPERATION = 'jsonapi-operation';
 const RESOURCE_TYPE = 'jsonapi-resource-type';
-
-export interface JSONAPIBaseSerializerSettings {
-  keyMap?: KeyMap;
-  schema: Schema;
-  serializerFor: (
-    type: string,
-    settings?: Dict<any>
-  ) => Serializer<unknown, unknown, unknown, unknown>;
-  serializerSettingsFor: (type: string) => Dict<any>;
-}
 
 export abstract class JSONAPIBaseSerializer<
   From,
@@ -47,28 +37,32 @@ export abstract class JSONAPIBaseSerializer<
   SerializationOptions,
   DeserializationOptions
 > {
+  protected _resolver: SerializerResolver;
   protected _schema: Schema;
   protected _keyMap: KeyMap;
-  protected _serializers: Dict<Serializer<unknown, unknown, unknown, unknown>>;
-  protected _serializerFor: (
-    type: string,
-    settings?: Dict<any>
-  ) => Serializer<unknown, unknown, unknown, unknown>;
-  protected _serializerSettingsFor: (type: string) => Dict<any>;
-  protected _noopSerializer: Serializer<unknown, unknown, unknown, unknown>;
 
-  constructor(
-    settings: JSONAPIBaseSerializerSettings,
-    defaultSerializationOptions?: unknown
-  ) {
-    super(defaultSerializationOptions);
-
-    this._schema = settings.schema;
-    this._keyMap = settings.keyMap;
-    this._serializerFor = settings.serializerFor;
-    this._serializerSettingsFor = settings.serializerSettingsFor;
-    this._serializers = {};
-    this._noopSerializer = new NoopSerializer();
+  constructor(settings: {
+    resolver: SerializerResolver;
+    schema: Schema;
+    keyMap?: KeyMap;
+    serializationOptions?: SerializationOptions;
+    deserializationOptions?: DeserializationOptions;
+  }) {
+    const {
+      resolver,
+      schema,
+      keyMap,
+      serializationOptions,
+      deserializationOptions
+    } = settings;
+    super({
+      resolver,
+      serializationOptions,
+      deserializationOptions
+    });
+    this._resolver = resolver;
+    this._schema = schema;
+    this._keyMap = keyMap;
   }
 
   get schema(): Schema {
@@ -79,17 +73,8 @@ export abstract class JSONAPIBaseSerializer<
     return this._keyMap;
   }
 
-  serializerFor(type: string): Serializer<unknown, unknown, unknown, unknown> {
-    let serializer = this._serializers[type];
-    if (serializer === undefined) {
-      let settings;
-      if (this._serializerSettingsFor) {
-        settings = this._serializerSettingsFor(type);
-      }
-      serializer = this._serializers[type] =
-        this._serializerFor(type, settings) || this._noopSerializer;
-    }
-    return serializer;
+  serializerFor(type: string): UnknownSerializer {
+    return this._resolver.resolve(type);
   }
 
   protected get identitySerializer(): Serializer<
