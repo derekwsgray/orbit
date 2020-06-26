@@ -20,6 +20,8 @@ import {
   JSONAPIRequestOptions,
   mergeJSONAPIRequestOptions
 } from './jsonapi-request-options';
+import { RESOURCE_DOCUMENT } from '../serializers/serializable-types';
+import { RecordDocument } from '../jsonapi-documents';
 
 export interface QueryRequest {
   op: string;
@@ -191,7 +193,9 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
-      const deserialized = requestProcessor.serializer.deserialize(document);
+      const deserialized = requestProcessor
+        .serializerFor(RESOURCE_DOCUMENT)
+        .deserialize(document) as RecordDocument;
       const operations = requestProcessor.operationsFromDeserializedDocument(
         deserialized
       );
@@ -218,7 +222,9 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
-      const deserialized = requestProcessor.serializer.deserialize(document);
+      const deserialized = requestProcessor
+        .serializerFor(RESOURCE_DOCUMENT)
+        .deserialize(document) as RecordDocument;
       const operations = requestProcessor.operationsFromDeserializedDocument(
         deserialized
       );
@@ -251,7 +257,9 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
-      const deserialized = requestProcessor.serializer.deserialize(document);
+      const deserialized = requestProcessor
+        .serializerFor(RESOURCE_DOCUMENT)
+        .deserialize(document) as RecordDocument;
       const { data: relatedRecord, meta, links } = deserialized;
       const operations = requestProcessor.operationsFromDeserializedDocument(
         deserialized
@@ -292,7 +300,9 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
-      const deserialized = requestProcessor.serializer.deserialize(document);
+      const deserialized = requestProcessor
+        .serializerFor(RESOURCE_DOCUMENT)
+        .deserialize(document) as RecordDocument;
       const { data, meta, links } = deserialized;
       const relatedRecords = data as Record[];
 

@@ -1,7 +1,7 @@
 import { Dict } from '@orbit/utils';
 import { ModelDefinition, Schema } from '@orbit/data';
 import { JSONAPISerializer } from '../src/jsonapi-serializer';
-import { ResourceOperationsDocument } from '../src/resource-document';
+import { ResourceOperationsDocument } from '../src/atomic-operations-documents';
 
 const { module, test } = QUnit;
 
@@ -233,11 +233,11 @@ module('JSONAPISerializer', function (hooks) {
       {
         op: 'update',
         ref: {
-          type: 'planet',
+          type: 'planets',
           id: '1'
         },
         data: {
-          type: 'planet',
+          type: 'planets',
           id: '1',
           attributes: {
             name: 'Earth'
@@ -247,11 +247,11 @@ module('JSONAPISerializer', function (hooks) {
       {
         op: 'add',
         ref: {
-          type: 'moon',
+          type: 'moons',
           id: '3'
         },
         data: {
-          type: 'moon',
+          type: 'moons',
           id: '3',
           attributes: {
             name: 'Io'
@@ -287,11 +287,11 @@ module('JSONAPISerializer', function (hooks) {
     const operation = serializer.deserializeOperation({
       op: 'update',
       ref: {
-        type: 'planet',
+        type: 'planets',
         id: '1'
       },
       data: {
-        type: 'planet',
+        type: 'planets',
         id: '1',
         attributes: {
           name: 'Earth'

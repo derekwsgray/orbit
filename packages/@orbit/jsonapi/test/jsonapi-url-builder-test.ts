@@ -1,7 +1,9 @@
-const { module, test } = QUnit;
 import { KeyMap, Schema } from '@orbit/data';
 import JSONAPIURLBuilder from '../src/jsonapi-url-builder';
-import { JSONAPISerializer } from '../src/jsonapi-serializer';
+import { buildJSONAPISerializerFor } from '../src/serializers/jsonapi-serializer-builder';
+import { RESOURCE_IDENTITY } from '../src/serializers/serializable-types';
+
+const { module, test } = QUnit;
 
 module('JSONAPIRequestProcessor', function (hooks) {
   let keyMap: KeyMap;
@@ -57,11 +59,18 @@ module('JSONAPIRequestProcessor', function (hooks) {
         }
       }
     });
-    let serializer = new JSONAPISerializer({ schema, keyMap });
-    urlBuilder = new JSONAPIURLBuilder({ serializer, keyMap });
-    urlBuilder.serializer.resourceKey = function () {
-      return 'remoteId';
-    };
+    let serializerFor = buildJSONAPISerializerFor({
+      schema,
+      keyMap,
+      serializerSettingsFor: (type: string) => {
+        if (type === RESOURCE_IDENTITY) {
+          return {
+            getResourceKey: () => 'remoteId'
+          };
+        }
+      }
+    });
+    urlBuilder = new JSONAPIURLBuilder({ serializerFor, keyMap });
   });
 
   hooks.afterEach(() => {

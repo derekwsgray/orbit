@@ -21,7 +21,6 @@ import Orbit, {
   TransformNotAllowed,
   QueryNotAllowed
 } from '@orbit/data';
-import { Dict } from '@orbit/utils';
 import JSONAPIRequestProcessor, {
   JSONAPIRequestProcessorSettings,
   FetchSettings
@@ -45,7 +44,11 @@ import {
   TransformRecordRequest,
   getTransformRequests
 } from './lib/transform-requests';
-import { Serializer } from '@orbit/serializers';
+import {
+  SerializerClassForFn,
+  SerializerSettingsForFn,
+  SerializerForFn
+} from '@orbit/serializers';
 
 const { assert } = Orbit;
 
@@ -57,6 +60,9 @@ export interface JSONAPISourceSettings extends SourceSettings {
   host?: string;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
+  serializerFor?: SerializerForFn;
+  serializerClassFor?: SerializerClassForFn;
+  serializerSettingsFor?: SerializerSettingsForFn;
   SerializerClass?: new (
     settings: JSONAPISerializerSettings
   ) => JSONAPISerializer;
@@ -66,9 +72,6 @@ export interface JSONAPISourceSettings extends SourceSettings {
   URLBuilderClass?: new (
     settings: JSONAPIURLBuilderSettings
   ) => JSONAPIURLBuilder;
-  serializers?: Dict<Serializer<unknown, unknown, unknown, unknown>>;
-  serializationOptions?: Dict<Dict<unknown>>;
-  deserializationOptions?: Dict<Dict<unknown>>;
   schema?: Schema;
   keyMap?: KeyMap;
 }
@@ -93,8 +96,6 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @updatable
 export default class JSONAPISource extends Source
   implements Pullable, Pushable, Queryable, Updatable {
-  namespace: string;
-  host: string;
   maxRequestsPerTransform?: number;
   maxRequestsPerQuery?: number;
   requestProcessor: JSONAPIRequestProcessor;
@@ -137,22 +138,40 @@ export default class JSONAPISource extends Source
 
     super(settings);
 
-    this.namespace = settings.namespace;
-    this.host = settings.host;
-    this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
+    let {
+      maxRequestsPerTransform,
+      maxRequestsPerQuery,
+      namespace,
+      host,
+      defaultFetchSettings,
+      allowedContentTypes,
+      serializerFor,
+      serializerClassFor,
+      serializerSettingsFor,
+      SerializerClass,
+      RequestProcessorClass,
+      URLBuilderClass,
+      schema,
+      keyMap
+    } = settings;
 
-    const RequestProcessorClass =
-      settings.RequestProcessorClass || JSONAPIRequestProcessor;
+    this.maxRequestsPerTransform = maxRequestsPerTransform;
+    this.maxRequestsPerQuery = maxRequestsPerQuery;
+
+    RequestProcessorClass = RequestProcessorClass || JSONAPIRequestProcessor;
     this.requestProcessor = new RequestProcessorClass({
       sourceName: this.name,
-      SerializerClass: settings.SerializerClass || JSONAPISerializer,
-      URLBuilderClass: settings.URLBuilderClass || JSONAPIURLBuilder,
-      allowedContentTypes: settings.allowedContentTypes,
-      defaultFetchSettings: settings.defaultFetchSettings,
-      namespace: settings.namespace,
-      host: settings.host,
-      schema: settings.schema,
-      keyMap: settings.keyMap
+      serializerFor,
+      serializerClassFor,
+      serializerSettingsFor,
+      SerializerClass,
+      URLBuilderClass: URLBuilderClass || JSONAPIURLBuilder,
+      allowedContentTypes,
+      defaultFetchSettings,
+      namespace,
+      host,
+      schema,
+      keyMap
     });
   }
 

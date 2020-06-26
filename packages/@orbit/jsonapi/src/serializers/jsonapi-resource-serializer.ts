@@ -2,16 +2,13 @@ import { deepSet } from '@orbit/utils';
 import { Record, RecordIdentity, ModelDefinition } from '@orbit/data';
 import { Resource, ResourceIdentity } from '../jsonapi-resource';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
-
-export interface JSONAPIResourceSerializationOptions {
-  primaryRecord?: Record;
-}
+import { JSONAPIResourceIdentityDeserializationOptions } from './jsonapi-resource-identity-serializer';
 
 export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   Record,
   Resource,
-  JSONAPIResourceSerializationOptions,
-  JSONAPIResourceSerializationOptions
+  unknown,
+  JSONAPIResourceIdentityDeserializationOptions
 > {
   serialize(record: Record): Resource {
     const resource: Resource = this.identitySerializer.serialize(record);
@@ -27,8 +24,9 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
 
   deserialize(
     resource: Resource,
-    options?: JSONAPIResourceSerializationOptions
+    customOptions?: JSONAPIResourceIdentityDeserializationOptions
   ): Record {
+    const options = this.buildDeserializationOptions(customOptions);
     const record: Record = this.identitySerializer.deserialize(
       resource as ResourceIdentity,
       options

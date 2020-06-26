@@ -13,24 +13,34 @@ import { clone, Dict } from '@orbit/utils';
 import { JSONAPISerializer } from './jsonapi-serializer';
 import { Filter } from './lib/jsonapi-request-options';
 import { appendQueryParams } from './lib/query-params';
+import { SerializerForFn } from '@orbit/serializers';
+import {
+  RESOURCE_TYPE,
+  RESOURCE_IDENTITY,
+  RESOURCE_FIELD
+} from './serializers/serializable-types';
+import { ResourceIdentity } from './jsonapi-resource';
 
 export interface JSONAPIURLBuilderSettings {
   host?: string;
   namespace?: string;
-  serializer: JSONAPISerializer;
-  keyMap: KeyMap;
+  serializer?: JSONAPISerializer;
+  serializerFor?: SerializerForFn;
+  keyMap?: KeyMap;
 }
 
 export default class JSONAPIURLBuilder {
   host: string;
   namespace: string;
-  serializer: JSONAPISerializer;
-  keyMap: KeyMap;
+  serializer?: JSONAPISerializer;
+  serializerFor?: SerializerForFn;
+  keyMap?: KeyMap;
 
   constructor(settings: JSONAPIURLBuilderSettings) {
     this.host = settings.host;
     this.namespace = settings.namespace;
     this.serializer = settings.serializer;
+    this.serializerFor = settings.serializerFor;
     this.keyMap = settings.keyMap;
   }
 
@@ -63,12 +73,26 @@ export default class JSONAPIURLBuilder {
   }
 
   resourcePath(type: string, id?: string): string {
-    let path = [this.serializer.resourceType(type)];
-    if (id) {
-      let resourceId = this.serializer.resourceId(type, id);
-      if (resourceId) {
-        path.push(resourceId);
+    let resourceType, resourceId;
+    if (this.serializer) {
+      resourceType = this.serializer.resourceType(type);
+      if (id) {
+        resourceId = this.serializer.resourceId(type, id);
       }
+    } else if (id) {
+      let identity = this.serializerFor(RESOURCE_IDENTITY).serialize({
+        type,
+        id
+      }) as ResourceIdentity;
+      resourceType = identity.type;
+      resourceId = identity.id;
+    } else {
+      resourceType = this.serializerFor(RESOURCE_TYPE).serialize(type);
+    }
+
+    let path = [resourceType];
+    if (resourceId) {
+      path.push(resourceId);
     }
     return path.join('/');
   }
@@ -81,7 +105,7 @@ export default class JSONAPIURLBuilder {
     return (
       this.resourceURL(type, id) +
       '/relationships/' +
-      this.serializer.resourceRelationship(type, relationship)
+      this.serializeRelationshipInPath(type, relationship)
     );
   }
 
@@ -89,7 +113,7 @@ export default class JSONAPIURLBuilder {
     return (
       this.resourceURL(type, id) +
       '/' +
-      this.serializer.resourceRelationship(type, relationship)
+      this.serializeRelationshipInPath(type, relationship)
     );
   }
 
@@ -104,7 +128,7 @@ export default class JSONAPIURLBuilder {
         const attributeFilter = filterSpecifier as AttributeFilterSpecifier;
 
         // Note: We don't know the `type` of the attribute here, so passing `null`
-        const resourceAttribute = this.serializer.resourceAttribute(
+        const resourceAttribute = this.serializeAttributeAsParam(
           null,
           attributeFilter.attribute
         );
@@ -152,7 +176,7 @@ export default class JSONAPIURLBuilder {
           const attributeSort = sortSpecifier as AttributeSortSpecifier;
 
           // Note: We don't know the `type` of the attribute here, so passing `null`
-          const resourceAttribute = this.serializer.resourceAttribute(
+          const resourceAttribute = this.serializeAttributeAsParam(
             null,
             attributeSort.attribute
           );
@@ -181,5 +205,39 @@ export default class JSONAPIURLBuilder {
       fullUrl = appendQueryParams(fullUrl, params);
     }
     return fullUrl;
+  }
+
+  protected serializeAttributeAsParam(type: string, attribute: string): string {
+    if (this.serializer) {
+      return this.serializer.resourceAttribute(type, attribute);
+    } else {
+      return this.serializerFor(RESOURCE_FIELD).serialize(attribute) as string;
+    }
+  }
+
+  protected serializeRelationshipAsParam(
+    type: string,
+    relationship: string
+  ): string {
+    if (this.serializer) {
+      return this.serializer.resourceRelationship(type, relationship);
+    } else {
+      return this.serializerFor(RESOURCE_FIELD).serialize(
+        relationship
+      ) as string;
+    }
+  }
+
+  protected serializeRelationshipInPath(
+    type: string,
+    relationship: string
+  ): string {
+    if (this.serializer) {
+      return this.serializer.resourceRelationship(type, relationship);
+    } else {
+      return this.serializerFor(RESOURCE_FIELD).serialize(
+        relationship
+      ) as string;
+    }
   }
 }

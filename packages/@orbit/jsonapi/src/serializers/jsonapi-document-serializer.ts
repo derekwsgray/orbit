@@ -3,11 +3,16 @@ import { Resource } from '../jsonapi-resource';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 import { RecordDocument, ResourceDocument } from '../jsonapi-documents';
 
+export interface JSONAPIDocumentDeserializationOptions {
+  primaryRecord?: Record;
+  primaryRecords?: Record[];
+}
+
 export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
   RecordDocument,
   ResourceDocument,
   unknown,
-  unknown
+  JSONAPIDocumentDeserializationOptions
 > {
   serialize(document: RecordDocument): ResourceDocument {
     let resDocument: ResourceDocument = {
@@ -24,8 +29,11 @@ export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
 
   deserialize(
     resDocument: ResourceDocument,
-    options?: { primaryRecord?: Record; primaryRecords?: Record[] }
+    customOptions?: JSONAPIDocumentDeserializationOptions
   ): RecordDocument {
+    const options = this.buildSerializationOptions(
+      customOptions
+    ) as JSONAPIDocumentDeserializationOptions;
     let resData = resDocument.data;
     let data;
 

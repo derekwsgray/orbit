@@ -27,8 +27,15 @@ import {
   JSONAPISerializer,
   JSONAPISerializerSettings
 } from './jsonapi-serializer';
-import { Serializer } from '@orbit/serializers';
-const { assert } = Orbit;
+import {
+  SerializerForFn,
+  SerializerClassForFn,
+  SerializerSettingsForFn
+} from '@orbit/serializers';
+import { buildJSONAPISerializerFor } from './serializers/jsonapi-serializer-builder';
+import { RESOURCE_DOCUMENT } from './serializers/serializable-types';
+
+const { assert, deprecate } = Orbit;
 
 export interface FetchSettings {
   headers?: Dict<any>;
@@ -47,9 +54,9 @@ export interface FetchSettings {
 
 export interface JSONAPIRequestProcessorSettings {
   sourceName: string;
-  serializers?: Dict<Serializer<unknown, unknown, unknown, unknown>>;
-  serializationOptions?: Dict<Dict<unknown>>;
-  deserializationOptions?: Dict<Dict<unknown>>;
+  serializerFor?: SerializerForFn;
+  serializerClassFor?: SerializerClassForFn;
+  serializerSettingsFor?: SerializerSettingsForFn;
   SerializerClass?: new (
     settings: JSONAPISerializerSettings
   ) => JSONAPISerializer;
@@ -66,7 +73,8 @@ export interface JSONAPIRequestProcessorSettings {
 
 export default class JSONAPIRequestProcessor {
   sourceName: string;
-  serializer: JSONAPISerializer;
+  _serializer: JSONAPISerializer;
+  _serializerFor: SerializerForFn;
   urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
@@ -74,29 +82,66 @@ export default class JSONAPIRequestProcessor {
   keyMap: KeyMap;
 
   constructor(settings: JSONAPIRequestProcessorSettings) {
-    this.sourceName = settings.sourceName;
-    this.allowedContentTypes = settings.allowedContentTypes || [
+    let {
+      sourceName,
+      allowedContentTypes,
+      schema,
+      keyMap,
+      SerializerClass,
+      serializerFor,
+      serializerClassFor,
+      serializerSettingsFor
+    } = settings;
+
+    this.sourceName = sourceName;
+    this.allowedContentTypes = allowedContentTypes || [
       'application/vnd.api+json',
       'application/json'
     ];
-    this.schema = settings.schema;
-    this.keyMap = settings.keyMap;
-    let SerializerClass = settings.SerializerClass || JSONAPISerializer;
-    this.serializer = new SerializerClass({
-      schema: settings.schema,
-      keyMap: settings.keyMap,
-      serializers: settings.serializers,
-      serializationOptions: settings.serializationOptions,
-      deserializationOptions: settings.deserializationOptions
-    });
-    let URLBuilderClass = settings.URLBuilderClass || JSONAPIURLBuilder;
-    this.urlBuilder = new URLBuilderClass({
+    this.schema = schema;
+    this.keyMap = keyMap;
+    const urlBuilderOptions: JSONAPIURLBuilderSettings = {
       host: settings.host,
       namespace: settings.namespace,
-      serializer: this.serializer,
       keyMap: settings.keyMap
-    });
+    };
+    if (SerializerClass) {
+      deprecate(
+        "The 'SerializerClass' setting for 'JSONAPIRequestProcessor' has been deprecated. Pass 'serializerFor', 'serializerClassFor', and/or 'serializerSettingsFor' instead."
+      );
+      this._serializer = new SerializerClass({
+        schema,
+        keyMap
+      });
+      urlBuilderOptions.serializer = this._serializer;
+    } else {
+      this._serializerFor = buildJSONAPISerializerFor({
+        schema,
+        keyMap,
+        serializerFor,
+        serializerClassFor,
+        serializerSettingsFor
+      });
+      urlBuilderOptions.serializerFor = this._serializerFor;
+    }
+    let URLBuilderClass = settings.URLBuilderClass || JSONAPIURLBuilder;
+    this.urlBuilder = new URLBuilderClass(urlBuilderOptions);
     this.initDefaultFetchSettings(settings);
+  }
+
+  get serializer(): JSONAPISerializer {
+    deprecate(
+      "'JSONAPIRequestProcessor#serializer' has been deprecated. Use 'serializerFor' instead."
+    );
+    if (this._serializer) {
+      return this._serializer;
+    } else {
+      return this._serializerFor(RESOURCE_DOCUMENT) as JSONAPISerializer;
+    }
+  }
+
+  get serializerFor(): SerializerForFn {
+    return this._serializerFor;
   }
 
   fetch(url: string, customSettings?: FetchSettings): Promise<any> {

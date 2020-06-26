@@ -1,30 +1,20 @@
+import { Schema, KeyMap } from '@orbit/data';
 import {
-  Record,
-  RecordIdentity,
-  RecordOperation,
-  Schema,
-  KeyMap
-} from '@orbit/data';
-import { Resource, ResourceIdentity } from '../jsonapi-resource';
-import { ResourceOperation } from '../atomic-operations';
-import {
-  Serializer,
   BaseSerializer,
-  UnknownSerializer,
-  StringSerializationOptions,
-  SerializerResolver
+  SerializerForFn,
+  StringSerializer
 } from '@orbit/serializers';
+import { JSONAPIResourceIdentitySerializer } from './jsonapi-resource-identity-serializer';
+import { JSONAPIResourceSerializer } from './jsonapi-resource-serializer';
 import {
-  JSONAPIResourceIdentitySerializer,
-  JSONAPIResourceIdentitySerializationOptions
-} from './jsonapi-resource-identity-serializer';
-import { JSONAPIResourceSerializationOptions } from './jsonapi-resource-serializer';
-
-const RESOURCE = 'jsonapi-resource';
-const RESOURCE_IDENTITY = 'jsonapi-resource-identity';
-const RESOURCE_FIELD = 'jsonapi-resource-field';
-const RESOURCE_OPERATION = 'jsonapi-operation';
-const RESOURCE_TYPE = 'jsonapi-resource-type';
+  RESOURCE,
+  RESOURCE_FIELD,
+  RESOURCE_IDENTITY,
+  RESOURCE_OPERATION,
+  RESOURCE_TYPE
+} from './serializable-types';
+import { JSONAPIOperationSerializer } from './jsonapi-operation-serializer';
+import { JSONAPIResourceFieldSerializer } from './jsonapi-resource-field-serializer';
 
 export abstract class JSONAPIBaseSerializer<
   From,
@@ -37,30 +27,29 @@ export abstract class JSONAPIBaseSerializer<
   SerializationOptions,
   DeserializationOptions
 > {
-  protected _resolver: SerializerResolver;
+  serializerFor: SerializerForFn;
   protected _schema: Schema;
   protected _keyMap: KeyMap;
 
   constructor(settings: {
-    resolver: SerializerResolver;
-    schema: Schema;
-    keyMap?: KeyMap;
+    serializerFor?: SerializerForFn;
     serializationOptions?: SerializationOptions;
     deserializationOptions?: DeserializationOptions;
+    schema: Schema;
+    keyMap?: KeyMap;
   }) {
     const {
-      resolver,
-      schema,
-      keyMap,
+      serializerFor,
       serializationOptions,
-      deserializationOptions
+      deserializationOptions,
+      schema,
+      keyMap
     } = settings;
     super({
-      resolver,
+      serializerFor,
       serializationOptions,
       deserializationOptions
     });
-    this._resolver = resolver;
     this._schema = schema;
     this._keyMap = keyMap;
   }
@@ -73,74 +62,25 @@ export abstract class JSONAPIBaseSerializer<
     return this._keyMap;
   }
 
-  serializerFor(type: string): UnknownSerializer {
-    return this._resolver.resolve(type);
+  protected get resourceSerializer(): JSONAPIResourceSerializer {
+    return this.serializerFor(RESOURCE) as JSONAPIResourceSerializer;
   }
 
-  protected get identitySerializer(): Serializer<
-    RecordIdentity,
-    ResourceIdentity,
-    JSONAPIResourceIdentitySerializationOptions,
-    JSONAPIResourceIdentitySerializationOptions
-  > {
+  protected get identitySerializer(): JSONAPIResourceIdentitySerializer {
     return this.serializerFor(
       RESOURCE_IDENTITY
     ) as JSONAPIResourceIdentitySerializer;
   }
 
-  protected get fieldSerializer(): Serializer<
-    string,
-    string,
-    unknown,
-    unknown
-  > {
-    return this.serializerFor(RESOURCE_FIELD) as Serializer<
-      string,
-      string,
-      unknown,
-      unknown
-    >;
+  protected get typeSerializer(): StringSerializer {
+    return this.serializerFor(RESOURCE_TYPE) as StringSerializer;
   }
 
-  protected get resourceSerializer(): Serializer<
-    Record,
-    Resource,
-    JSONAPIResourceSerializationOptions,
-    JSONAPIResourceSerializationOptions
-  > {
-    return this.serializerFor(RESOURCE) as Serializer<
-      Record,
-      Resource,
-      JSONAPIResourceSerializationOptions,
-      JSONAPIResourceSerializationOptions
-    >;
+  protected get fieldSerializer(): JSONAPIResourceFieldSerializer {
+    return this.serializerFor(RESOURCE_FIELD) as JSONAPIResourceFieldSerializer;
   }
 
-  protected get typeSerializer(): Serializer<
-    string,
-    string,
-    StringSerializationOptions,
-    StringSerializationOptions
-  > {
-    return this.serializerFor(RESOURCE_TYPE) as Serializer<
-      string,
-      string,
-      StringSerializationOptions,
-      StringSerializationOptions
-    >;
-  }
-
-  protected get operationSerializer(): Serializer<
-    RecordOperation,
-    ResourceOperation,
-    unknown,
-    unknown
-  > {
-    return this.serializerFor(RESOURCE_OPERATION) as Serializer<
-      RecordOperation,
-      ResourceOperation,
-      unknown,
-      unknown
-    >;
+  protected get operationSerializer(): JSONAPIOperationSerializer {
+    return this.serializerFor(RESOURCE_OPERATION) as JSONAPIOperationSerializer;
   }
 }

@@ -20,7 +20,7 @@ import {
   ResourceOperation,
   UpdateResourceOperation
 } from '../atomic-operations';
-import { Resource } from '../jsonapi-resource';
+import { Resource, ResourceIdentity } from '../jsonapi-resource';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 
 export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
@@ -80,7 +80,9 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
   ): UpdateResourceOperation {
     return {
       op: 'update',
-      ref: this.identitySerializer.serialize(operation.record),
+      ref: this.identitySerializer.serialize(
+        operation.record
+      ) as ResourceIdentity,
       data: this.resourceSerializer.serialize(operation.record)
     };
   }
@@ -90,14 +92,18 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
   ): RemoveResourceOperation {
     return {
       op: 'remove',
-      ref: this.identitySerializer.serialize(operation.record)
+      ref: this.identitySerializer.serialize(
+        operation.record
+      ) as ResourceIdentity
     };
   }
 
   protected serializeAddToRelatedRecordsOperation(
     operation: AddToRelatedRecordsOperation
   ): AddToRelatedResourcesOperation {
-    const ref = this.identitySerializer.serialize(operation.record);
+    const ref = this.identitySerializer.serialize(
+      operation.record
+    ) as ResourceIdentity;
     return {
       op: 'add',
       ref: { relationship: operation.relationship, ...ref },
@@ -108,7 +114,9 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
   protected serializeRemoveFromRelatedRecordsOperation(
     operation: RemoveFromRelatedRecordsOperation
   ): RemoveFromRelatedResourcesOperation {
-    const ref = this.identitySerializer.serialize(operation.record);
+    const ref = this.identitySerializer.serialize(
+      operation.record
+    ) as ResourceIdentity;
     return {
       op: 'remove',
       ref: { relationship: operation.relationship, ...ref },
@@ -119,7 +127,9 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
   protected serializeReplaceRelatedRecordsOperation(
     operation: ReplaceRelatedRecordsOperation
   ): ReplaceRelatedResourcesOperation {
-    const ref = this.identitySerializer.serialize(operation.record);
+    const ref = this.identitySerializer.serialize(
+      operation.record
+    ) as ResourceIdentity;
     return {
       op: 'update',
       ref: { relationship: operation.relationship, ...ref },
@@ -132,7 +142,9 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
   protected serializeReplaceRelatedRecordOperation(
     operation: ReplaceRelatedRecordOperation
   ): ReplaceRelatedResourceOperation {
-    const ref = this.identitySerializer.serialize(operation.record);
+    const ref = this.identitySerializer.serialize(
+      operation.record
+    ) as ResourceIdentity;
     return {
       op: 'update',
       ref: { relationship: operation.relationship, ...ref },

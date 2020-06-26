@@ -65,7 +65,7 @@ module('JSONAPISerializer', function (hooks) {
       }
     };
 
-    class DistanceSerializer implements Serializer<number, string> {
+    class DistanceSerializer implements Serializer<number, string, any, any> {
       serialize(arg: number, options?: any): string {
         let distance = arg;
         const format = options && options.format;
@@ -747,16 +747,16 @@ module('JSONAPISerializer', function (hooks) {
     });
 
     test('#resourceId returns a matching resource id given an orbit id', function (assert) {
-      serializer.deserialize({ data: { type: 'planet', id: 'a' } });
-      serializer.deserialize({ data: { type: 'planet', id: 'b' } });
+      serializer.deserialize({ data: { type: 'planets', id: 'a' } });
+      serializer.deserialize({ data: { type: 'planets', id: 'b' } });
 
       assert.equal(serializer.resourceId('planet', 'a'), 'a');
       assert.equal(serializer.resourceId('planet', 'b'), 'b');
     });
 
     test('#resourceIds returns an array of matching resource ids given an array of orbit ids', function (assert) {
-      serializer.deserialize({ data: { type: 'planet', id: 'a' } });
-      serializer.deserialize({ data: { type: 'planet', id: 'b' } });
+      serializer.deserialize({ data: { type: 'planets', id: 'a' } });
+      serializer.deserialize({ data: { type: 'planets', id: 'b' } });
 
       assert.deepEqual(
         serializer.resourceIds('planet', ['a', 'b']),
@@ -766,8 +766,8 @@ module('JSONAPISerializer', function (hooks) {
     });
 
     test('#recordId returns a matching orbit id given a resource id - using UUIDs', function (assert) {
-      serializer.deserialize({ data: { type: 'planet', id: 'a' } });
-      serializer.deserialize({ data: { type: 'planet', id: 'b' } });
+      serializer.deserialize({ data: { type: 'planets', id: 'a' } });
+      serializer.deserialize({ data: { type: 'planets', id: 'b' } });
 
       assert.equal(serializer.recordId('planet', 'a'), 'a');
       assert.equal(serializer.recordId('planet', 'b'), 'b');

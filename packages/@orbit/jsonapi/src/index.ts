@@ -1,5 +1,13 @@
 export { default, JSONAPISourceSettings } from './jsonapi-source';
+export * from './serializers/jsonapi-base-serializer';
 export * from './serializers/jsonapi-document-serializer';
+export * from './serializers/jsonapi-operation-serializer';
+export * from './serializers/jsonapi-operations-document-serializer';
+export * from './serializers/jsonapi-resource-field-serializer';
+export * from './serializers/jsonapi-resource-identity-serializer';
+export * from './serializers/jsonapi-resource-serializer';
+export * from './serializers/jsonapi-serializer-builder';
+export * from './serializers/serializable-types';
 export {
   default as JSONAPIRequestProcessor,
   JSONAPIRequestProcessorSettings,
