@@ -1,4 +1,5 @@
 import { Serializer } from './serializer';
+import { SerializerForFn } from './serializer-builders';
 
 export interface BaseSerializationOptions {
   disallowNull?: boolean;
@@ -12,13 +13,16 @@ export abstract class BaseSerializer<
 >
   implements
     Serializer<From, To, SerializationOptions, DeserializationOptions> {
+  serializerFor?: SerializerForFn;
   protected serializationOptions?: SerializationOptions;
   protected deserializationOptions?: DeserializationOptions;
 
   constructor(settings?: {
+    serializerFor?: SerializerForFn;
     serializationOptions?: SerializationOptions;
     deserializationOptions?: DeserializationOptions;
   }) {
+    this.serializerFor = settings?.serializerFor;
     this.serializationOptions = settings?.serializationOptions;
     this.deserializationOptions = settings?.deserializationOptions;
   }
@@ -30,7 +34,7 @@ export abstract class BaseSerializer<
     if (options && customOptions) {
       return {
         ...options,
-        customOptions
+        ...customOptions
       };
     } else {
       return (options || customOptions || {}) as SerializationOptions;
@@ -44,7 +48,7 @@ export abstract class BaseSerializer<
     if (options && customOptions) {
       return {
         ...options,
-        customOptions
+        ...customOptions
       };
     } else {
       return (options || customOptions || {}) as DeserializationOptions;
