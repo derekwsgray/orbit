@@ -1,5 +1,5 @@
 import { KeyMap, Record, Schema } from '@orbit/data';
-import JSONAPISource from '@orbit/jsonapi';
+import JSONAPISource, { RESOURCE_IDENTITY } from '@orbit/jsonapi';
 import MemorySource from '@orbit/memory';
 import Coordinator, { RequestStrategy, SyncStrategy } from '@orbit/coordinator';
 import { jsonapiResponse } from './support/jsonapi';
@@ -74,10 +74,18 @@ module(
 
       memory = new MemorySource({ schema, keyMap });
 
-      remote = new JSONAPISource({ schema, keyMap, name: 'remote' });
-      remote.requestProcessor.serializer.resourceKey = function () {
-        return 'remoteId';
-      };
+      remote = new JSONAPISource({
+        schema,
+        keyMap,
+        name: 'remote',
+        serializerSettingsFor: (type: string) => {
+          if (type === RESOURCE_IDENTITY) {
+            return {
+              getResourceKey: () => 'remoteId'
+            };
+          }
+        }
+      });
 
       coordinator = new Coordinator({
         sources: [memory, remote]
